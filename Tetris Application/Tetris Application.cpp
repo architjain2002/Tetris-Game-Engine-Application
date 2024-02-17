@@ -1,10 +1,11 @@
 #include <iostream>
 #include <windows.h>
+#include <thread>
 using namespace std;
 
 wstring tetromino[7]; // string of the shapes
 
-int nFieldWidth = 12; // field width
+int nFieldWidth = 20; // field width
 int nFieldHeight = 18; // field height
 unsigned char* pField = nullptr; // piece field which will be dynamically allocated
 
@@ -108,14 +109,41 @@ int main()
     int nCurrentX = nFieldWidth / 2; // the x value of the top left piece in the field, in this case it is somewhere in the middle
     int nCurrentY = 0; // the y value of the top left piece in the field - so here it would be the at the start of the field
 
+
+    bool bKey[4];
+    bool bRotateHold = false;
     while (!bGameOver) {
 
         //GAME TIMING ================================================>
-        
+        this_thread::sleep_for(50ms);
+
         // INPUT =====================================================>
-
+        for (int k = 0; k < 4; k++) {                             //R  L   D   Z
+            bKey[k] = (0x8000 & GetAsyncKeyState((unsigned char)("\x27\x25\x28Z"[k]))) != 0;
+        }
         // GAME LOGIC ================================================>
-
+        if (bKey[1]) {
+            if (doesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX - 1, nCurrentY)) {
+                nCurrentX = nCurrentX - 1;
+            }
+        }
+        if (bKey[0]) {
+            if (doesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX + 1, nCurrentY)) {
+                nCurrentX = nCurrentX + 1;
+            }
+        }
+        if (bKey[2]) {
+            if (doesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX, nCurrentY + 1)) {
+                nCurrentY = nCurrentY + 1;
+            }
+        }
+        if (bKey[3]) {
+            if (bRotateHold == false && doesPieceFit(nCurrentPiece, nCurrentRotation + 1, nCurrentX, nCurrentY)) {
+                nCurrentRotation = nCurrentRotation + 1;
+                bRotateHold = true;
+            }
+            else bRotateHold = false;
+        }
         // RENDER OUTPUT =============================================>
 
         for (int x = 0; x < nFieldWidth; x++) {
