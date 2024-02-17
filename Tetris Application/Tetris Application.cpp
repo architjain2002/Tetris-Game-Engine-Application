@@ -2,7 +2,7 @@
 #include <windows.h>
 using namespace std;
 
-wstring tetromino[7];
+wstring tetromino[7]; // string of the shapes
 
 int nFieldWidth = 12; // field width
 int nFieldHeight = 18; // field height
@@ -19,6 +19,30 @@ int rotate(int px, int py, int r) {
     case 3: return 3 - py + (px * 4);  // for 270 degrees rotation
     }
 }
+
+bool doesPieceFit(int nTetromino, int nRotation, int nPosX, int nPosY) {
+
+    for (int px = 0; px < 4; px++) {
+        for (int py = 0; py < 4; py++) {
+
+            // get index into piece
+            int pi = rotate(px, py, nRotation);
+
+            // get index into field
+            int fi = (nPosY + py) * nFieldWidth + (nPosX + px);
+
+            if (nPosX + px >= 0 && nPosX + px < nFieldWidth) {
+                if (nPosY + py >= 0 && nPosY + py < nFieldHeight) {
+                    if (tetromino[nTetromino][pi] == L'X' && pField[fi] != 0) {
+                        return false; // fails
+                    }
+                } 
+            }
+        }
+    }
+    return true;
+}
+
 int main()
 {
     tetromino[0].append(L"..X.");
@@ -75,12 +99,19 @@ int main()
     SetConsoleActiveScreenBuffer(hConsole);
     DWORD dwBytesWritten = 0;
 
+
+    // Game logic goes here
     bool bGameOver = false;
+
+    int nCurrentPiece = 0; // which is the current piece
+    int nCurrentRotation = 0; // which rotation is the piece at
+    int nCurrentX = nFieldWidth / 2; // the x value of the top left piece in the field, in this case it is somewhere in the middle
+    int nCurrentY = 0; // the y value of the top left piece in the field - so here it would be the at the start of the field
 
     while (!bGameOver) {
 
         //GAME TIMING ================================================>
-
+        
         // INPUT =====================================================>
 
         // GAME LOGIC ================================================>
@@ -90,6 +121,14 @@ int main()
         for (int x = 0; x < nFieldWidth; x++) {
             for (int y = 0; y < nFieldHeight; y++) {
                 screen[(y+2) * nScreenWidth + (x+2)] = L" ABCDEFG=#"[pField[y * nFieldWidth + x]];
+            }
+        }
+
+        for (int px = 0; px < 4; px++) {
+            for (int py = 0; py < 4; py++) {
+                if (tetromino[nCurrentPiece][rotate(px, py, nCurrentRotation)] == L'X') {
+                    screen[(nCurrentY + py + 2) * nScreenWidth + (nCurrentX + px + 2)] = nCurrentPiece + 65;
+                }
             }
         }
 
